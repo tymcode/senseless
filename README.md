@@ -101,23 +101,18 @@ senseless map-clear --yes                   # back to factory behaviour
 
 ### SenselApp says "damaged and can't be opened"
 
-Sensel's last installer (`SenselApp0.19.32.pkg`) installs an app whose code signature
-lists six `.nib` files the package doesn't contain, so current macOS refuses to open
-it. The app itself is fine. To repair it:
+Sensel's last installer ships an app with a broken code signature, so current macOS
+refuses to open it. [`senselapp-fix/`](senselapp-fix/) has a standalone script that
+repairs it without running the installer and without an admin password. It can also
+download the installer from the Internet Archive:
 
 ```sh
-scripts/fix-senselapp.sh ~/Downloads/SenselApp0.19.32.pkg
+sh senselapp-fix/fix-senselapp.sh --download
 ```
 
-This unpacks the app from your copy of Sensel's package without running the installer,
-checks it is Sensel's signed build, copies it to `~/Applications/SenselApp.app`, and
-re-signs it locally. It needs no administrator password. On Apple Silicon it needs
-Rosetta 2. **Don't re-run the installer afterwards**: that would put the broken copy back
-in `/Applications`. No Sensel files are included in this repository; you need your own
-copy of the package.
-
-SenselApp's update and firmware checks fail now that senselapp.com is gone. Only one
-program can use the Morph at a time, so quit `senseless-mpe` while SenselApp is open.
+See [senselapp-fix/README.md](senselapp-fix/README.md) for details and for what does and
+doesn't work in SenselApp. In short: Visualizer and device info work; updates don't;
+Thunder taps don't light up in the app, though the Morph still sends their MIDI.
 
 ### Python
 
@@ -168,7 +163,7 @@ lib/sensel/src/        LibSensel (Sensel, MIT) + senseless additions:
 tools/                 senseless CLI, senseless-mpe, .senselmap compiler
 examples/              Sensel's C examples (unchanged)
 wrappers/python/       Sensel's Python wrapper + examples
-scripts/               fix-senselapp.sh (repair SenselApp 0.19.32 for current macOS)
+senselapp-fix/         standalone fix for SenselApp 0.19.32 on current macOS
 tests/                 decompression self-check + differential test vs Sensel's binary
 docs/                  protocol, overlay maps, reverse-engineering notes
 ```
