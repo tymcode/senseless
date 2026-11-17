@@ -175,5 +175,12 @@ Labels are upsampled by interpolating each label's masked force image separately
 taking, per output pixel, the label with the largest interpolated force above
 `10 / 4095` g.
 
+**Units of the result:** the upsampler keeps amplitude, not total force. Each output
+pixel holds roughly the grams of the coarse cell it lies in, so on a Morph
+(47 × 27 → 185 × 105) the sum of `force_array` is about 15× the total contact force.
+Sensel's binary does the same. To get grams of total force, use contact `total_force`
+or divide the image sum by `(185·105)/(47·27) ≈ 15.3`. On hardware, the measured
+`UNIT_SHIFT_FORCE` was 3 (`force_value_scale` = 8).
+
 The senseless implementation reproduces Sensel's binary **bit-exactly** on 8 000
 randomised frames across four metadata configurations (`tests/run_decompress_diff.sh`).

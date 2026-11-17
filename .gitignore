@@ -5,3 +5,4 @@
 *.dylib
 morph-overlays-*.bin
 __pycache__/
+/backups/

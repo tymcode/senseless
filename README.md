@@ -111,9 +111,9 @@ senseless map-clear --yes                   # back to factory behaviour
 | Force/label decompression | ✅ bit-exact vs Sensel's binary (8 000 randomised frames) |
 | `libSensel` universal build + ABI drop-in | ✅ old-SDK binary runs on it |
 | CoreMIDI / MPE output | ✅ verified with `--demo` and a MIDI listener |
-| Serial/IOKit backend on a real Morph | ⏳ needs hardware testing |
-| `senseless-mpe` with a real Morph | ⏳ needs hardware testing (tuning of force curves) |
-| Overlay map flashing | ⚠️ implemented from SenselApp's logic; **not yet tried on hardware** |
+| Serial/IOKit backend on a real Morph | ✅ tested on firmware 0.19.216 |
+| `senseless-mpe` with a real Morph | ✅ works; velocity/pressure curves tuned from recorded playing |
+| Overlay map flashing | ✅ flashed a No Overlay map; read back byte-exact, other slots untouched, map active after reboot |
 | Firmware updates | ❌ firmware was only hosted on senselapp.com (now 404) |
 | Map *editor* GUI | ❌ not started; maps are edited as text or taken from Sensel's repo |
 
@@ -124,12 +124,19 @@ senseless map-clear --yes                   # back to factory behaviour
 3. `senseless contacts`: touch it and you should see start/move/end events with forces in grams.
 4. `senseless forces --map`: check that the force image looks right; this exercises the
    new decompressor end to end.
-5. `senseless-mpe -v`, then play. Adjust `--pressure-max` and `--velocity-max` to taste.
+5. `senseless-mpe -v`, then play. Adjust `--velocity-min/--velocity-max` (log scale, defaults 5 g / 1 kg)
+   and `--pressure-max` (default 1 kg) to taste.
 6. Run `senseless backup` **before** trying `map-flash`.
 
-Open question for hardware testing: while the API is scanning, does the firmware's
-own overlay output (trackpad, MIDI) stay active? If the No Overlay trackpad moves the
-cursor while `senseless-mpe` runs, that's the reason. Please report it.
+**Firmware output while the API scans** (tested on hardware, firmware 0.19.216):
+- **MIDI:** the firmware's own USB-MIDI output stops within about 0.1–0.4 s of the API
+  starting a scan, and resumes when scanning stops. Firmware MPE and `senseless-mpe`
+  therefore never double up.
+- **HID (trackpad/keyboard maps):** not settled. With the trackpad map, the pointer
+  seemed to keep moving during a scan, with brief pauses. If it does, flash a MIDI-only
+  No Overlay map so the bare surface stops driving the pointer. Sensel's
+  `No Overlay - Multitouch v1.2.senselmap` turns the whole surface into one firmware MPE
+  region.
 
 ## Layout
 

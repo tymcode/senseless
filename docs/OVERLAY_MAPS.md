@@ -6,10 +6,12 @@ by **maps** stored in flash, one per overlay type; the firmware picks the map fo
 whichever overlay is attached (detected magnetically). SenselApp was the only tool that
 could write those maps. `senseless map-flash` replaces that function.
 
-> ⚠️ **Status: not yet verified on hardware.** The format and procedure below are a
-> faithful reimplementation of what SenselApp 0.19.32 did, and `senseless` refuses to
-> write anything without `--yes`, always backs up first, and can restore or clear.
-> Until someone confirms it on a real Morph, treat flashing as experimental.
+> **Status: verified on a Morph (firmware 0.19.216).** Flashing Sensel's
+> `No Overlay - Multitouch v1.2` map changed only that slot's body (read back
+> byte-exact). The header and the other maps were untouched, and the firmware used the
+> new map after the reboot. `senseless` still refuses to write without `--yes`, always
+> backs up first, and can restore or clear. The three factory/SenselApp maps read from
+> that device also matched this layout exactly.
 
 ## Flash area (register 0xC5, 17 408 bytes = 68 × 256-byte pages)
 

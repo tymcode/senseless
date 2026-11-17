@@ -150,6 +150,7 @@ static int stream(int idx, int forces, int ascii_map)
           printf("contact %2d %s  x %6.1f mm  y %6.1f mm  force %7.1f g  area %5.0f\n", k->id,
                  state_name(k->state), k->x_pos, k->y_pos, k->total_force, k->area);
         }
+        fflush(stdout);
       } else if (!ascii_map) {
         float total = 0;
         for (int i = 0; i < si.num_rows * si.num_cols; i++) total += frame->force_array[i];

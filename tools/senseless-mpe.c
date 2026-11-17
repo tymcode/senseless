@@ -38,6 +38,7 @@ typedef struct {
   int       members;             // member channels (lower zone: 2 .. 1+members)
   float     pressure_max_g;
   float     pressure_curve;
+  float     velocity_min_g;
   float     velocity_max_g;
   float     velocity_curve;
   int       velocity_frames;     // frames to wait for velocity before note-on
@@ -170,6 +171,17 @@ static int curve127(float value, float max, float curve, int min_out)
   return clampi(v, min_out, 127);
 }
 
+// Velocity is measured on a log scale: on a real Morph, strike onsets span roughly
+// 5 g (feather tap) to 1.5 kg (hard strike), and a linear/power scale crushes the
+// soft end. min_g maps to velocity 1, max_g to 127; curve shapes the log position.
+static int velocity127(float grams)
+{
+  if (grams <= cfg.velocity_min_g) return 1;
+  float n = logf(grams / cfg.velocity_min_g) / logf(cfg.velocity_max_g / cfg.velocity_min_g);
+  n = clampf(n, 0.0f, 1.0f);
+  return clampi((int)lroundf(powf(n, cfg.velocity_curve) * 127.0f), 1, 127);
+}
+
 // Grid row 0 is at the bottom of the surface (nearest the player).
 static void cell_of(float x, float y, int *col, int *row)
 {
@@ -229,7 +241,7 @@ static void voice_off(Batch *b, Voice *v)
 
 static void voice_sound(Batch *b, Voice *v)
 {
-  int vel = curve127(v->peak_force, cfg.velocity_max_g, cfg.velocity_curve, 1);
+  int vel = velocity127(v->peak_force);
   v->last_bend = bend_for(v);
   v->last_cc74 = cc74_for(v);
   v->last_pressure = pressure_for(v);
@@ -468,10 +480,11 @@ static void usage(void)
     "  --row-interval N       semitones between rows (default 5 = fourths)\n"
     "  --bend-range N         member pitch-bend range in semitones (default 48)\n"
     "  --members N            member channels, 1-15 (default 15)\n"
-    "  --pressure-max G       grams for full channel pressure (default 600)\n"
+    "  --pressure-max G       grams for full channel pressure (default 1000)\n"
     "  --pressure-curve X     exponent applied to pressure (default 0.7)\n"
-    "  --velocity-max G       grams for velocity 127 (default 400)\n"
-    "  --velocity-curve X     exponent applied to velocity (default 0.6)\n"
+    "  --velocity-min G       onset grams for velocity 1 (default 5)\n"
+    "  --velocity-max G       onset grams for velocity 127 (default 1000)\n"
+    "  --velocity-curve X     exponent on the log-scaled velocity (default 1)\n"
     "  --velocity-frames N    frames to sample before note-on (default 1, 0 = immediate)\n"
     "  --smoothing A          0..0.95 low-pass on x/y/force (default 0)\n"
     "  --pitch absolute       bend measured from the cell centre (default: relative to touch)\n"
@@ -491,7 +504,7 @@ int main(int argc, char **argv)
     {"base-note", required_argument, 0, 'b'}, {"row-interval", required_argument, 0, 'i'},
     {"bend-range", required_argument, 0, 'B'}, {"members", required_argument, 0, 'M'},
     {"pressure-max", required_argument, 0, 'p'}, {"pressure-curve", required_argument, 0, 'P'},
-    {"velocity-max", required_argument, 0, 'e'}, {"velocity-curve", required_argument, 0, 'E'},
+    {"velocity-min", required_argument, 0, 'g'}, {"velocity-max", required_argument, 0, 'e'}, {"velocity-curve", required_argument, 0, 'E'},
     {"velocity-frames", required_argument, 0, 'f'}, {"smoothing", required_argument, 0, 's'},
     {"pitch", required_argument, 0, 'x'}, {"y", required_argument, 0, 'y'},
     {"flip-y", no_argument, 0, 'F'}, {"frame-rate", required_argument, 0, 'R'},
@@ -506,10 +519,11 @@ int main(int argc, char **argv)
   cfg.row_interval = 5;
   cfg.bend_range = 48;
   cfg.members = 15;
-  cfg.pressure_max_g = 600.0f;
+  cfg.pressure_max_g = 1000.0f;
   cfg.pressure_curve = 0.7f;
-  cfg.velocity_max_g = 400.0f;
-  cfg.velocity_curve = 0.6f;
+  cfg.velocity_min_g = 5.0f;
+  cfg.velocity_max_g = 1000.0f;
+  cfg.velocity_curve = 1.0f;
   cfg.velocity_frames = 1;
   cfg.send_mcm = 1;
 
@@ -525,6 +539,7 @@ int main(int argc, char **argv)
       case 'M': cfg.members = clampi(atoi(optarg), 1, MAX_MEMBERS); break;
       case 'p': cfg.pressure_max_g = (float)atof(optarg); break;
       case 'P': cfg.pressure_curve = (float)atof(optarg); break;
+      case 'g': cfg.velocity_min_g = (float)atof(optarg); break;
       case 'e': cfg.velocity_max_g = (float)atof(optarg); break;
       case 'E': cfg.velocity_curve = (float)atof(optarg); break;
       case 'f': cfg.velocity_frames = clampi(atoi(optarg), 0, 20); break;
@@ -541,8 +556,9 @@ int main(int argc, char **argv)
     }
   }
   if (cfg.cell_mm < 5.0f) cfg.cell_mm = 5.0f;
-  if (cfg.pressure_max_g <= 0) cfg.pressure_max_g = 600.0f;
-  if (cfg.velocity_max_g <= 0) cfg.velocity_max_g = 400.0f;
+  if (cfg.pressure_max_g <= 0) cfg.pressure_max_g = 1000.0f;
+  if (cfg.velocity_min_g <= 0) cfg.velocity_min_g = 5.0f;
+  if (cfg.velocity_max_g <= cfg.velocity_min_g) cfg.velocity_max_g = 1000.0f;
 
   signal(SIGINT, on_signal);
   signal(SIGTERM, on_signal);
