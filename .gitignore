@@ -1,0 +1,7 @@
+/build/
+/build-*/
+.DS_Store
+*.o
+*.dylib
+morph-overlays-*.bin
+__pycache__/
