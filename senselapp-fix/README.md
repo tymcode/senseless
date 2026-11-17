@@ -35,8 +35,14 @@ or downloads it from the Internet Archive.
 
 1. **Remove the broken app** if you already ran Sensel's installer: drag
    `/Applications/SenselApp.app` to the Trash. Finder may ask for your password.
-2. **Download `fix-senselapp.sh`** and note where you saved it (e.g. your Downloads folder).
-3. **Open Terminal** (Applications → Utilities → Terminal) and run the script.
+2. **Open Terminal** (Applications → Utilities → Terminal) and download the script into
+   your Downloads folder:
+   ```sh
+   curl -fsSL -o ~/Downloads/fix-senselapp.sh https://raw.githubusercontent.com/tymcode/senselapp-fix/main/fix-senselapp.sh
+   ```
+   You can also download it from this page (`fix-senselapp.sh` → download button) and
+   save it to Downloads.
+3. **Run the script.**
 
    If you already have `SenselApp0.19.32.pkg` in your Downloads folder:
    ```sh
