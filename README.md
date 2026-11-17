@@ -99,6 +99,26 @@ senseless map-clear --yes                   # back to factory behaviour
 `map-flash` always writes a timestamped backup first. Format details are in
 [docs/OVERLAY_MAPS.md](docs/OVERLAY_MAPS.md).
 
+### SenselApp says "damaged and can't be opened"
+
+Sensel's last installer (`SenselApp0.19.32.pkg`) installs an app whose code signature
+lists six `.nib` files the package doesn't contain, so current macOS refuses to open
+it. The app itself is fine. To repair it:
+
+```sh
+scripts/fix-senselapp.sh ~/Downloads/SenselApp0.19.32.pkg
+```
+
+This unpacks the app from your copy of Sensel's package without running the installer,
+checks it is Sensel's signed build, copies it to `~/Applications/SenselApp.app`, and
+re-signs it locally. It needs no administrator password. On Apple Silicon it needs
+Rosetta 2. **Don't re-run the installer afterwards**: that would put the broken copy back
+in `/Applications`. No Sensel files are included in this repository; you need your own
+copy of the package.
+
+SenselApp's update and firmware checks fail now that senselapp.com is gone. Only one
+program can use the Morph at a time, so quit `senseless-mpe` while SenselApp is open.
+
 ### Python
 
 `wrappers/python/sensel.py` is Sensel's wrapper, adjusted to also find the library via
@@ -148,6 +168,7 @@ lib/sensel/src/        LibSensel (Sensel, MIT) + senseless additions:
 tools/                 senseless CLI, senseless-mpe, .senselmap compiler
 examples/              Sensel's C examples (unchanged)
 wrappers/python/       Sensel's Python wrapper + examples
+scripts/               fix-senselapp.sh (repair SenselApp 0.19.32 for current macOS)
 tests/                 decompression self-check + differential test vs Sensel's binary
 docs/                  protocol, overlay maps, reverse-engineering notes
 ```
